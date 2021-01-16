@@ -7,6 +7,7 @@ buildscript {
 }
 plugins {
     id 'java'
+    id 'org.inferred.processors' version '3.3.0'
 }
 
 group = project.rootProject.ext.constructGroupName("", project.getName())
@@ -21,6 +22,13 @@ repositories {
 }
 
 dependencies {
+    processor 'org.inferred:freebuilder:2.6.1'
+    implementation(project.rootProject.ext.jarDependency("com.google.guava", "guava"))
+    implementation(project.rootProject.ext.jarDependency("org.apache.commons", "commons-lang3"))
+    implementation(project.rootProject.ext.jarDependency("commons-io", "commons-io"))
+    implementation(project.rootProject.ext.jarDependency("com.fasterxml.jackson.core", "jackson-core"))
+    implementation(project.rootProject.ext.jarDependency("com.fasterxml.jackson.core", "jackson-databind"))
+    implementation(project.rootProject.ext.jarDependency("com.fasterxml.jackson.core", "jackson-annotations"))
     testImplementation(project.rootProject.ext.jarDependency("junit", "junit"))
 }
 test {
