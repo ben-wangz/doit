@@ -55,5 +55,5 @@ public interface Task {
 
     TimeUnit unit();
 
-    int currentPeriod();
+    int nextPeriod();
 }

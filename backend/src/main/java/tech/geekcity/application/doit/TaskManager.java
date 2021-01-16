@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.inferred.freebuilder.FreeBuilder;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @FreeBuilder
@@ -58,6 +61,7 @@ public abstract class TaskManager {
     public void configure() throws IOException {
         pool = FileUtils.readLines(dataFile())
                 .stream()
+                .filter(StringUtils::isNotBlank)
                 .map(jsonLine -> {
                     try {
                         return Task.Builder.newInstance().parseFromJson(jsonLine);
@@ -70,11 +74,47 @@ public abstract class TaskManager {
     public void flush() throws IOException {
         FileUtils.writeStringToFile(
                 dataFile(), pool.stream()
+                        .sorted(Comparator.comparing(Task::title)
+                                .thenComparingLong(Task::timestampInMs))
                         .map(task -> task.toBuilder().toJsonSilently())
                         .collect(Collectors.joining("\n")));
     }
 
     public void add(Task task) {
         pool.add(task);
+    }
+
+    public List<Task> todayTaskList() {
+        return pool.stream()
+                .collect(Collectors.toMap(
+                        Task::title,
+                        task -> task,
+                        (oldValue, newValue) -> {
+                            if (oldValue.timestampInMs() < newValue.timestampInMs())
+                                return newValue;
+                            else {
+                                return oldValue;
+                            }
+                        }
+                )).values()
+                .stream()
+                .filter(this::shouldBeDoneNow)
+                .map(this::generateTodayTask)
+                .collect(Collectors.toList());
+    }
+
+    private Task generateTodayTask(Task task) {
+        int nextPeriod = task.nextPeriod() * 2;
+        return task.toBuilder()
+                .nextPeriod(nextPeriod)
+                .timestampInMs(System.currentTimeMillis())
+                .build();
+    }
+
+    private boolean shouldBeDoneNow(Task task) {
+        long now = System.currentTimeMillis();
+        return task.nextPeriod() == task.unit()
+                .convert(now - task.timestampInMs(),
+                        TimeUnit.MILLISECONDS);
     }
 }
