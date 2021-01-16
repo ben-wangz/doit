@@ -1,0 +1,108 @@
+buildscript {
+    repositories {
+        for (mavenRepositoryUrl in project.rootProject.ext.mavenRepositoryUrlList) {
+            maven { url(mavenRepositoryUrl) }
+        }
+    }
+}
+plugins {
+    id 'java'
+}
+
+group = project.rootProject.ext.constructGroupName("", project.getName())
+version = project.rootProject.constructVersion()
+sourceCompatibility = project.rootProject.ext.javaVersion
+targetCompatibility = project.rootProject.ext.javaVersion
+
+repositories {
+    for (mavenRepositoryUrl in project.rootProject.ext.mavenRepositoryUrlList) {
+        maven { url(mavenRepositoryUrl) }
+    }
+}
+
+dependencies {
+    testImplementation(project.rootProject.ext.jarDependency("junit", "junit"))
+}
+test {
+    useJUnit()
+}
+
+def mainClass = "flink.learning.example.wordcount.WordCount"
+def jarBaseName = "${project.getName()}-with-dependencies"
+def jarPath = "${project.buildDir}/libs/${jarBaseName}-${project.getVersion()}.jar"
+jar {
+    manifest {
+        attributes "Main-Class": mainClass
+    }
+    setArchivesBaseName(jarBaseName)
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task runLocal(type: Exec) {
+    executable("java")
+    args(
+            "-classpath", "${jarPath}",
+            mainClass
+    )
+    doFirst {
+        println("running command: ${String.join(" ", getCommandLine())}")
+    }
+    dependsOn(jar)
+}
+
+// ********************** build docker images **********************
+def buildDockerPath = "${project.buildDir}/docker/"
+def httpProxy = java.util.Optional.ofNullable(System.getenv("http_proxy")).orElse("")
+def httpsProxy = java.util.Optional.ofNullable(System.getenv("https_proxy")).orElse("")
+
+task copyJar(type: Copy) {
+    from file(jarPath)
+    into file(buildDockerPath)
+    rename {
+        fileName -> "${jarBaseName}.jar"
+    }
+    dependsOn(jar)
+}
+def imageName = "doit:${project.getVersion()}"
+task buildImage(type: Exec) {
+    executable("docker")
+    args(
+            "build", buildDockerPath,
+            "-f", "${project.file("docker/doit.dockerfile")}",
+            "--build-arg", "http_proxy=${httpProxy}",
+            "--build-arg", "https_proxy=${httpsProxy}",
+            "-t", imageName,
+    )
+    doFirst {
+        println("running command: ${String.join(" ", getCommandLine())}")
+    }
+    doLast {
+        println("start command: docker run --rm -d -p 8081:8081 -it ${imageName}")
+    }
+    dependsOn(copyJar)
+}
+def containerName = "doit"
+task restartDocker() {
+    doLast {
+        def exists = project.rootProject.ext.dockerContainerExists(containerName)
+        if (exists) {
+            project.rootProject.ext.stopDockerContainer(containerName)
+        }
+        def extendArgList = ["-p", "8080:8080"]
+        project.rootProject.ext.startDockerContainer(containerName, imageName, extendArgList)
+    }
+}
+task stopDocker() {
+    onlyIf {
+        def exists = project.rootProject.ext.dockerContainerExists(containerName)
+        if (!exists) {
+            println("${containerName} not exists, do nothing.")
+        }
+        return exists
+    }
+    doLast {
+        project.rootProject.ext.stopDockerContainer(containerName)
+    }
+}

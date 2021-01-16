@@ -1,0 +1,112 @@
+buildscript {
+    repositories {
+        for (mavenRepositoryUrl in [
+                "https://maven.aliyun.com/repository/public",
+                "https://maven.aliyun.com/repository/spring",
+                "https://maven.aliyun.com/repository/mapr-public",
+                "https://maven.aliyun.com/repository/spring-plugin",
+                "https://maven.aliyun.com/repository/gradle-plugin",
+                "https://maven.aliyun.com/repository/google",
+                "https://maven.aliyun.com/repository/jcenter",
+        ]) {
+            maven { url(mavenRepositoryUrl) }
+        }
+    }
+}
+plugins {
+}
+ext {
+    coreName = project.getName()
+    mainVersion = "v1.0.0"
+    mainGroup = "flink.learning.example"
+    javaVersion = 1.8
+    mavenRepositoryUrlList = [
+            "https://maven.aliyun.com/repository/public",
+            "https://maven.aliyun.com/repository/spring",
+            "https://maven.aliyun.com/repository/mapr-public",
+            "https://maven.aliyun.com/repository/spring-plugin",
+            "https://maven.aliyun.com/repository/gradle-plugin",
+            "https://maven.aliyun.com/repository/google",
+            "https://maven.aliyun.com/repository/jcenter",
+    ]
+    gitCommitId = { ->
+        def headDeafOutputStream = new ByteArrayOutputStream()
+        exec {
+            commandLine("git", "diff", "HEAD")
+            standardOutput = headDeafOutputStream
+        }
+        def headDeaf = headDeafOutputStream.toString().trim()
+        def clean = headDeaf.isEmpty()
+
+        def commitIdOutputStream = new ByteArrayOutputStream()
+        exec {
+            commandLine("git", "rev-parse", "--short", "HEAD")
+            standardOutput = commitIdOutputStream
+        }
+        return "${commitIdOutputStream.toString().trim()}_${clean ? "" : "dirty"}"
+    }
+    dockerImageNamePrefix = project.getName()
+    constructGroupName = { middleName, projectName ->
+        return "${ext.mainGroup}.${middleName}.${projectName} "
+    }
+    constructVersion = { ->
+        return "${ext.mainVersion}_${ext.gitCommitId()}"
+    }
+    constructDockerImageName = { coreName ->
+        return "${ext.dockerImageNamePrefix}_${coreName}:${ext.constructVersion()}"
+    }
+    jarDependencyVersion = { groupWithArtifact ->
+        def slf4jVersion = "1.7.15"
+        def jacksonVersion = "2.9.8"
+        def versionMapping = [
+                "org.inferred:freebuilder"                      : "2.6.1",
+                "com.google.code.findbugs:jsr305"               : "3.0.2",
+                "com.google.guava:guava"                        : "29.0-jre",
+                "org.apache.commons:commons-lang3"              : "3.0",
+                "org.slf4j:slf4j-api"                           : slf4jVersion,
+                "org.slf4j:slf4j-simple"                        : slf4jVersion,
+                "org.freemarker:freemarker"                     : "2.3.9",
+                "commons-io:commons-io"                         : "2.4",
+                "com.fasterxml.jackson.core:jackson-core"       : jacksonVersion,
+                "com.fasterxml.jackson.core:jackson-databind"   : jacksonVersion,
+                "com.fasterxml.jackson.core:jackson-annotations": jacksonVersion,
+                "junit:junit"                                   : "4.12",
+        ]
+        def version = versionMapping[groupWithArtifact]
+        if (!version) {
+            throw new RuntimeException("version not found for \"${groupWithArtifact}\"")
+        }
+        return version
+    }
+    jarDependency = { group, artifact ->
+        String groupWithArtifact = "${group}:${artifact}"
+        return "${groupWithArtifact}:${ext.jarDependencyVersion(groupWithArtifact)}"
+    }
+    dockerContainerExists = { String containerName ->
+        def execResult = exec {
+            commandLine("docker")
+            args("inspect", containerName)
+            ignoreExitValue(true)
+        }
+        return 0 == execResult.getExitValue()
+    }
+    startDockerContainer = { String containerName, String imageName, List<String> extendArgList ->
+        exec {
+            List<String> argumentList = new ArrayList<>()
+            argumentList.addAll("run", "--rm")
+            extendArgList.each { argument -> argumentList.add(argument) }
+            argumentList.addAll(
+                    "--name", containerName,
+                    "-d", imageName,
+            )
+            commandLine("docker")
+            args(argumentList)
+        }
+    }
+    stopDockerContainer = { String containerName ->
+        exec {
+            commandLine("docker")
+            args("kill", containerName)
+        }
+    }
+}
