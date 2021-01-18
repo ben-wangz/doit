@@ -3,28 +3,42 @@ package tech.geekcity.application.doit.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.geekcity.application.doit.entity.Task;
-import tech.geekcity.application.doit.service.impl.TaskManager;
+import tech.geekcity.application.doit.repository.TaskRepository;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskManagerService {
-    private final TaskManager taskManager;
+    private final TaskRepository taskRepository;
 
     @Autowired
-    public TaskManagerService(TaskManager taskManager) {
-        this.taskManager = taskManager;
+    public TaskManagerService(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
     }
 
     public List<Task> taskList(int limit) {
-        return taskManager.taskList(limit);
+        return taskRepository.findAllTask(limit);
     }
 
     public List<Task> todayTaskList(int limit) {
-        return taskManager.todayTaskList(limit);
+        taskRepository.findLatestGroupByTitle(-1)
+                .stream()
+                .filter(this::shouldBeDoneNow)
+                .limit(limit > 0 ? limit : Integer.MAX_VALUE)
+                .collect(Collectors.toList());
+        return taskRepository.findAllTask(limit);
     }
 
     public void add(Task task) {
-        taskManager.add(task);
+        taskRepository.saveTask(task);
+    }
+
+    private boolean shouldBeDoneNow(Task task) {
+        long now = System.currentTimeMillis();
+        return task.nextPeriod() == task.unit()
+                .convert(now - task.timestampInMs(),
+                        TimeUnit.MILLISECONDS);
     }
 }

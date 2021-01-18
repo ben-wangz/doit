@@ -28,6 +28,7 @@ repositories {
 dependencies {
     processor "org.inferred:freebuilder:2.6.1"
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation(project.rootProject.ext.jarDependency("com.google.guava", "guava"))
     implementation(project.rootProject.ext.jarDependency("org.apache.commons", "commons-lang3"))
     implementation(project.rootProject.ext.jarDependency("commons-io", "commons-io"))

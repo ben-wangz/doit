@@ -3,24 +3,26 @@ package tech.geekcity.application.doit.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.sun.istack.Nullable;
 import org.inferred.freebuilder.FreeBuilder;
+import tech.geekcity.application.doit.entity.pojo.TaskPojo;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @FreeBuilder
 @JsonDeserialize(builder = Task.Builder.class)
-public interface Task {
+public abstract class Task {
     /**
      * Returns a new {@link Builder} with the same property values as this {@link Task}
      */
-    Builder toBuilder();
+    public abstract Builder toBuilder();
 
     /**
      * Builder of {@link Task} instances
      * auto generated builder className which cannot be modified
      */
-    class Builder extends Task_Builder {
+    public static class Builder extends Task_Builder {
         private final ObjectMapper objectMapper = new ObjectMapper();
 
         public static Builder newInstance() {
@@ -45,15 +47,39 @@ public interface Task {
         public Task parseFromJson(String json) throws IOException {
             return objectMapper.readValue(json, Task.class);
         }
+
+        public Task fromPojo(TaskPojo TaskPojo) {
+            return this.id(TaskPojo.getId())
+                    .title(TaskPojo.getTitle())
+                    .description(TaskPojo.getDescription())
+                    .timestampInMs(TaskPojo.getTimestampInMs())
+                    .unit(TaskPojo.getUnit())
+                    .nextPeriod(TaskPojo.getNextPeriod())
+                    .build();
+        }
     }
 
-    String title();
+    @Nullable
+    public abstract Long id();
 
-    String description();
+    public abstract String title();
 
-    long timestampInMs();
+    public abstract String description();
 
-    TimeUnit unit();
+    public abstract long timestampInMs();
 
-    int nextPeriod();
+    public abstract TimeUnit unit();
+
+    public abstract int nextPeriod();
+
+    public TaskPojo asPojo() {
+        return new TaskPojo(
+                id(),
+                title(),
+                description(),
+                timestampInMs(),
+                unit(),
+                nextPeriod()
+        );
+    }
 }
