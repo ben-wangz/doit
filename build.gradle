@@ -67,6 +67,8 @@ ext {
                 "org.slf4j:slf4j-simple"                        : slf4jVersion,
                 "org.freemarker:freemarker"                     : "2.3.9",
                 "commons-io:commons-io"                         : "2.4",
+                "mysql:mysql-connector-java"                    : "8.0.21",
+                "com.h2database:h2"                             : "1.4.195",
                 "com.fasterxml.jackson.core:jackson-core"       : jacksonVersion,
                 "com.fasterxml.jackson.core:jackson-databind"   : jacksonVersion,
                 "com.fasterxml.jackson.core:jackson-annotations": jacksonVersion,
