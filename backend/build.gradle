@@ -1,3 +1,5 @@
+import groovy.text.SimpleTemplateEngine
+
 buildscript {
     repositories {
         for (mavenRepositoryUrl in project.rootProject.ext.mavenRepositoryUrlList) {
@@ -42,28 +44,37 @@ test {
     useJUnit()
 }
 
-def mainClass = "tech.geekcity.application.doit.Application"
 def jarBaseName = "${project.getName()}-with-dependencies"
 def jarPath = "${project.buildDir}/libs/${jarBaseName}-${project.getVersion()}.jar"
-jar {
-    manifest {
-        attributes "Main-Class": mainClass
-    }
-    setArchivesBaseName(jarBaseName)
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+bootJar {
+    baseName(jarBaseName)
+}
+
+def applicationConfigPath = "${project.buildDir}/application.yaml"
+def frontendPath = "${project(":frontend").file("build/dist/")}"
+task renderApplicationConfig() {
+    doLast {
+        def templateText = project.file("template/application.yaml").text
+        def binding = [
+                "frontend_absolute_path": frontendPath,
+                "doit_data_path"        : project.file("data"),
+        ]
+        def engine = new SimpleTemplateEngine()
+        def applicationConfigContent = engine.createTemplate(templateText).make(binding)
+        project.file(applicationConfigPath).text = applicationConfigContent
     }
 }
 
 task runLocal(type: Exec) {
-    executable("java")
-    args(
-            "-classpath", "${jarPath}",
-            mainClass
+    commandLine(
+            "java",
+            "-jar", jarPath,
+            "--spring.config.location=file:${applicationConfigPath}",
     )
     doFirst {
         println("running command: ${String.join(" ", getCommandLine())}")
     }
-    dependsOn(jar)
+    dependsOn(renderApplicationConfig)
+    dependsOn(":frontend:yarnBuild")
+    dependsOn(bootJar)
 }
-

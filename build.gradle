@@ -112,3 +112,11 @@ ext {
         }
     }
 }
+
+allprojects {
+    task cleanBuild() {
+        doLast {
+            project.buildDir.deleteDir()
+        }
+    }
+}

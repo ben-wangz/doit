@@ -21,8 +21,6 @@ node {
     workDir = file("${project.buildDir}/nodejs")
     yarnWorkDir = file("${project.buildDir}/yarn")
 }
-// ./gradlew visualization:frontend:yarnAdd -PpackageName=vue-dnd
-// ./gradlew visualization:frontend:yarnAdd -PpackageName=vue-dnd -Pdev
 task yarnAdd(type: YarnTask) {
     def packageName = project.findProperty("packageName")
     args = project.hasProperty("dev") ? ["--dev", "add", packageName] : ["add", packageName]
