@@ -1,0 +1,38 @@
+buildscript {
+    repositories {
+        for (mavenRepositoryUrl in project.rootProject.ext.mavenRepositoryUrlList) {
+            maven { url(mavenRepositoryUrl) }
+        }
+    }
+}
+
+plugins {
+    id "com.github.node-gradle.node" version "2.2.4"
+}
+
+task setRegistry(type: YarnTask) {
+    args = ["config", "set", "registry", "https://registry.npm.taobao.org"]
+}
+yarn.dependsOn(setRegistry)
+node {
+    download(true)
+    version("14.15.3")
+    distBaseUrl("https://npm.taobao.org/mirrors/node")
+    workDir = file("${project.buildDir}/nodejs")
+    yarnWorkDir = file("${project.buildDir}/yarn")
+}
+// ./gradlew visualization:frontend:yarnAdd -PpackageName=vue-dnd
+// ./gradlew visualization:frontend:yarnAdd -PpackageName=vue-dnd -Pdev
+task yarnAdd(type: YarnTask) {
+    def packageName = project.findProperty("packageName")
+    args = project.hasProperty("dev") ? ["--dev", "add", packageName] : ["add", packageName]
+}
+task yarnJsonServer(type: YarnTask, dependsOn: yarn) {
+    args = ["run", "json-serve"]
+}
+task yarnBuild(type: YarnTask, dependsOn: yarn) {
+    args = ["run", "build"]
+}
+task yarnServe(type: YarnTask, dependsOn: yarn) {
+    args = ["run", "serve"]
+}
