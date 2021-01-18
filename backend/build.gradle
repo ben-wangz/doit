@@ -41,7 +41,7 @@ dependencies {
     testImplementation(project.rootProject.ext.jarDependency("junit", "junit"))
 }
 test {
-    useJUnit()
+    useJUnitPlatform()
 }
 
 def jarBaseName = "${project.getName()}-with-dependencies"

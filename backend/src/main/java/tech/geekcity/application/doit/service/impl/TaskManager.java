@@ -1,4 +1,4 @@
-package tech.geekcity.application.doit;
+package tech.geekcity.application.doit.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.inferred.freebuilder.FreeBuilder;
+import tech.geekcity.application.doit.entity.Task;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,7 +85,11 @@ public abstract class TaskManager {
         pool.add(task);
     }
 
-    public List<Task> todayTaskList() {
+    public List<Task> taskList(int limit) {
+        return pool.stream().limit(limit > 0 ? limit : Integer.MAX_VALUE).collect(Collectors.toList());
+    }
+
+    public List<Task> todayTaskList(int limit) {
         return pool.stream()
                 .collect(Collectors.toMap(
                         Task::title,
@@ -99,16 +104,8 @@ public abstract class TaskManager {
                 )).values()
                 .stream()
                 .filter(this::shouldBeDoneNow)
-                .map(this::generateTodayTask)
+                .limit(limit > 0 ? limit : Integer.MAX_VALUE)
                 .collect(Collectors.toList());
-    }
-
-    private Task generateTodayTask(Task task) {
-        int nextPeriod = task.nextPeriod() * 2;
-        return task.toBuilder()
-                .nextPeriod(nextPeriod)
-                .timestampInMs(System.currentTimeMillis())
-                .build();
     }
 
     private boolean shouldBeDoneNow(Task task) {
