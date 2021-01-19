@@ -3,7 +3,7 @@
     <el-table-column prop="id" label="id"></el-table-column>
     <el-table-column prop="title" label="标题"></el-table-column>
     <el-table-column prop="description" label="描述"></el-table-column>
-    <el-table-column prop="timestampInMs" label="毫秒级时间戳"></el-table-column>
+    <el-table-column prop="finishTime" label="完成时间"></el-table-column>
     <el-table-column prop="unit" label="周期单位"></el-table-column>
     <el-table-column prop="nextPeriod" label="下一周期"></el-table-column>
   </el-table>
@@ -23,8 +23,12 @@ export default {
     axios.post('/api/task/all?limit=5', {
       limit: '5',
     }).then(function (response) {
-      console.log(response.data.data);
-      self.allTask = response.data.data
+      let taskList = response.data.data;
+      taskList.forEach(task => {
+        task.finishTime = new Date(task.timestampInMs).toLocaleString("en-US")
+      })
+      self.allTask = taskList
+      console.log(self.allTask)
     }).catch(function (error) {
       console.log(error);
     });
