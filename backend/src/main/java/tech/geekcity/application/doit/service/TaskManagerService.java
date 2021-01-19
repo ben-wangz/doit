@@ -23,16 +23,15 @@ public class TaskManagerService {
     }
 
     public List<Task> todayTaskList(int limit) {
-        taskRepository.findLatestGroupByTitle(-1)
+        return taskRepository.findLatestTaskGroupByTitle(limit)
                 .stream()
                 .filter(this::shouldBeDoneNow)
                 .limit(limit > 0 ? limit : Integer.MAX_VALUE)
                 .collect(Collectors.toList());
-        return taskRepository.findAllTask(limit);
     }
 
-    public void add(Task task) {
-        taskRepository.saveTask(task);
+    public Task add(Task task) {
+        return taskRepository.saveTask(task);
     }
 
     private boolean shouldBeDoneNow(Task task) {

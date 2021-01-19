@@ -13,7 +13,19 @@ spring:
     username: h2_user
     password: h2_password
   jpa:
+    generate-ddl: true
     database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      # update
+      ddl-auto: none
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            create-source: metadata
+            scripts:
+              action: create
+              create-target: ${create_db_schema_path}
   h2:
     console:
       enabled: true

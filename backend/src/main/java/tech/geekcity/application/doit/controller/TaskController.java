@@ -9,7 +9,6 @@ import tech.geekcity.application.doit.service.TaskManagerService;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/task")
@@ -25,9 +24,7 @@ public class TaskController {
     public Response all(@RequestParam("limit") int limit) {
         List<Task> taskList = taskManagerService.taskList(limit);
         return Response.Builder.newInstance()
-                .data(taskList.stream()
-                        .map(task -> task.toBuilder().toJsonSilently())
-                        .collect(Collectors.toList()))
+                .data(taskList)
                 .build();
     }
 
@@ -35,26 +32,27 @@ public class TaskController {
     public Response today(@RequestParam("limit") int limit) {
         List<Task> taskList = taskManagerService.todayTaskList(limit);
         return Response.Builder.newInstance()
-                .data(taskList.stream()
-                        .map(task -> task.toBuilder().toJsonSilently())
-                        .collect(Collectors.toList()))
+                .data(taskList)
                 .build();
     }
 
     @RequestMapping("/add")
-    public void add(
+    public Response add(
             @RequestParam("title") String title,
             @RequestParam("description") String description,
             @RequestParam(name = "timestampInMs", defaultValue = "") long timestampInMs,
             @RequestParam(name = "unit", defaultValue = "DAYS") String unit,
             @RequestParam(name = "period", defaultValue = "1") int period
     ) {
-        taskManagerService.add(Task.Builder.newInstance()
+        Task taskAdded = taskManagerService.add(Task.Builder.newInstance()
                 .title(title)
                 .description(description)
                 .timestampInMs(timestampInMs)
                 .unit(TimeUnit.valueOf(unit))
                 .nextPeriod(period)
                 .build());
+        return Response.Builder.newInstance()
+                .data(taskAdded)
+                .build();
     }
 }
