@@ -8,7 +8,7 @@ spring:
   resources:
     static-locations: file:${frontend_absolute_path}
   datasource:
-    url: jdbc:h2:file:${application_h2_db_path}
+    url: jdbc:h2:file:${application_h2_db_path};DATABASE_TO_UPPER=false
     driverClassName: org.h2.Driver
     username: h2_user
     password: h2_password
@@ -16,16 +16,7 @@ spring:
     generate-ddl: true
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      # update
-      ddl-auto: none
-    properties:
-      javax:
-        persistence:
-          schema-generation:
-            create-source: metadata
-            scripts:
-              action: create
-              create-target: ${create_db_schema_path}
+      ddl-auto: ${ddl_auto}
   h2:
     console:
       enabled: true

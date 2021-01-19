@@ -59,7 +59,8 @@ task renderApplicationConfig() {
         def binding = [
                 "frontend_absolute_path": frontendPath,
                 "application_h2_db_path": "${project.buildDir}/application.db.h2",
-                "create_db_schema_path": "${project.buildDir}/create.db.schema.sql",
+                "create_db_schema_path" : "${project.buildDir}/create.db.schema.sql",
+                "ddl_auto"              : project.hasProperty("online") ? "none" : "create",
         ]
         def engine = new SimpleTemplateEngine()
         def applicationConfigContent = engine.createTemplate(templateText).make(binding)
