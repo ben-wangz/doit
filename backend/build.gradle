@@ -58,7 +58,6 @@ task renderApplicationConfig() {
         def templateText = project.file("template/application.yaml").text
         def binding = [
                 "frontend_absolute_path": frontendPath,
-                "doit_data_path"        : project.file("data/username.data"),
                 "application_h2_db_path": "${project.buildDir}/application.db.h2",
                 "create_db_schema_path": "${project.buildDir}/create.db.schema.sql",
         ]

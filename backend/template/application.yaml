@@ -29,6 +29,3 @@ spring:
   h2:
     console:
       enabled: true
-doit:
-  data:
-    path: ${doit_data_path}

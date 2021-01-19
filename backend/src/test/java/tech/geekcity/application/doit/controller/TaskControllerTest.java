@@ -6,24 +6,18 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import tech.geekcity.application.doit.Application;
 import tech.geekcity.application.doit.entity.Task;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@SpringBootTest(properties = {"doit.data.path=classpath://username.data"}, classes = Application.class)
+@SpringBootTest
 public class TaskControllerTest {
     private List<Task> taskListAdded;
     @Autowired
     private TaskController taskController;
-    @Value("${doit.data.path}")
-    private String dataPath;
-
 
     @BeforeEach
     void setUp() {
