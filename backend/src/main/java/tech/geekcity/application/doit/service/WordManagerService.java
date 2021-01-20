@@ -27,4 +27,8 @@ public class WordManagerService {
     public Word update(Word word) {
         return wordRepository.saveWord(word);
     }
+
+    public void delete(long wordId) {
+        wordRepository.deleteWord(wordId);
+    }
 }

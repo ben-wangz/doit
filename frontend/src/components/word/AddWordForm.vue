@@ -37,7 +37,9 @@ export default {
         let responseBackend = response.data
         if (!responseBackend.success) {
           console.error(response)
+          return
         }
+        self.$emit('refreshed')
       }).catch(function (error) {
         console.error(error);
       });

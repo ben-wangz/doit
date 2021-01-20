@@ -8,6 +8,7 @@ import tech.geekcity.application.doit.entity.Word;
 import tech.geekcity.application.doit.service.WordManagerService;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/word")
@@ -38,6 +39,13 @@ public class WordController {
                 .build());
         return Response.Builder.newInstance()
                 .data(wordAdded)
+                .build();
+    }
+
+    @RequestMapping("/delete")
+    public Response delete(@RequestParam("wordId") Long wordId) {
+        wordManagerService.delete(Objects.requireNonNull(wordId));
+        return Response.Builder.newInstance()
                 .build();
     }
 }
