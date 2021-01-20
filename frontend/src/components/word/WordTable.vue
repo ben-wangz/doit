@@ -70,11 +70,4 @@ export default {
 }
 </script>
 <style>
-.text_center {
-  text-align: center;
-}
-
-.footer_column_size {
-  height: 50px;
-}
 </style>
