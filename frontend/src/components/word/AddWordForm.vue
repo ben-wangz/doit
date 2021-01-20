@@ -13,8 +13,10 @@
 </template>
 <script>
 
+import axios from "axios";
+
 export default {
-  name: "WordTable",
+  name: "AddWordForm",
   data() {
     return {
       form: {
@@ -25,17 +27,23 @@ export default {
   },
   methods: {
     onSubmit() {
-      console.log('submit!');
-    }
+      const self = this
+      axios.post('/api/word/add', null, {
+        params: {
+          'word': self.form.word,
+          'description': self.form.description,
+        },
+      }).then(function (response) {
+        let responseBackend = response.data
+        if (!responseBackend.success) {
+          console.error(response)
+        }
+      }).catch(function (error) {
+        console.error(error);
+      });
+    },
   }
 }
 </script>
 <style>
-.text_center {
-  text-align: center;
-}
-
-.footer_column_size {
-  height: 50px;
-}
 </style>

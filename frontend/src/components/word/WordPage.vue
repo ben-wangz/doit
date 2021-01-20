@@ -1,13 +1,17 @@
 <template>
-  <WordTable></WordTable>
+  <div>
+    <WordTable></WordTable>
+    <AddWordForm></AddWordForm>
+  </div>
 </template>
 
 <script>
 import WordTable from "./WordTable";
+import AddWordForm from "./AddWordForm";
 
 export default {
-  name: 'HomePage',
-  components: {WordTable},
+  name: 'WordPage',
+  components: {WordTable, AddWordForm},
 }
 </script>
 
