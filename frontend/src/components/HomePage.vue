@@ -1,15 +1,14 @@
 <template>
   <div>
-    <TaskTable></TaskTable>
+    <Home></Home>
   </div>
 </template>
 
 <script>
-import TaskTable from "./task/TaskTable";
-
+import Home from "./home/Home";
 export default {
   name: 'HomePage',
-  components: {TaskTable},
+  components: { Home },
 }
 </script>
 
